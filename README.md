@@ -156,6 +156,7 @@
         <div class="toolbar">
             <button class="pill-btn" id="fontUp" aria-label="Increase font size">🔍 A+</button>
             <button class="pill-btn" id="fontDown" aria-label="Decrease font size">🔍 A-</button>
+            <button class="pill-btn" id="contrastBtn" aria-label="Toggle high contrast">🌓 Contrast</button>
             <button class="pill-btn" id="langEn"><span>🇬🇧 English</span></button>
             <button class="pill-btn" id="langTs"><span>🇧🇼 Setswana</span></button>
         </div>
@@ -258,7 +259,7 @@
                 <table class="queue-table" id="queueTable">
                     <thead><tr><th>#</th><th id="thPatient">Patient</th><th id="thWait">Est. Wait</th><th id="thStatus">Status</th><th id="thAction">Action</th></tr></thead>
                     <tbody id="queueTableBody"></tbody>
-                </table>
+                \dash
             </div>
             <button id="callNextBtn" class="call-btn">🔔 <span id="callNextText">Call Next Patient (Admin)</span></button>
             <div id="adminPinPanel" style="display:none; margin-top:10px;">
@@ -340,13 +341,7 @@
             let waitDisplay = p.status === "waiting" ? `${waitMinutes} min` : (p.status === "in_progress" ? "Now" : "✓");
             let badges = (p.priority ? `<span class="priority-badge">🚀 Priority</span>` : "") + (p.premium ? `<span class="premium-star">⭐ Premium</span>` : "");
             let serveBtn = p.status !== "served" ? `<button class="serve-btn" onclick="window.servePatient('${p.id}')">✅ ${t.serveBtn}</button>` : "<span>✓ Done</span>";
-            html += `<tr>
-                <td>${idx+1}</td>
-                <td>${escapeHtml(getPartialName(p.name))} ${badges}</td>
-                <td>${waitDisplay}</td>
-                <td>${statusText}</td>
-                <td>${serveBtn}</td>
-            </tr>`;
+            html += `<tr><td>${idx+1}</td><td>${escapeHtml(getPartialName(p.name))} ${badges}</td><td>${waitDisplay}</td><td>${statusText}</td><td>${serveBtn}</td></tr>`;
         });
         tbody.innerHTML = html;
         if(currentlyServingIndex < queueDB.length) servingSpan.innerText = `${getPartialName(queueDB[currentlyServingIndex].name)} (Position ${currentlyServingIndex+1})`;
@@ -439,13 +434,14 @@
         if(document.getElementById("customDonation")) document.getElementById("customDonation").oninput = (e) => customDonationAmount = parseInt(e.target.value) || 0;
     }
     
-    // Font & Keyboard
+    // Font & Keyboard (simplified)
     function loadFontPrefs() { let ff = localStorage.getItem("font_fam"); if(ff) document.body.style.fontFamily = ff; document.getElementById("fontFamilySelect").onchange = (e) => { document.body.style.fontFamily = e.target.value; localStorage.setItem("font_fam", e.target.value); }; }
     function buildKeyboard() { let c = document.getElementById("dynamicKbContainer"); if(!c) return; c.innerHTML = ""; let rows=[["1","2","3","4","5","6","7","8","9","0"],["q","w","e","r","t","y","u","i","o","p"],["a","s","d","f","g","h","j","k","l"],["z","x","c","v","b","n","m"],["space","backspace","clear"]]; rows.forEach(r=>{ let rd=document.createElement("div"); rd.className="keyboard-row"; r.forEach(k=>{ let btn=document.createElement("button"); btn.className="key-btn"; btn.innerText=k; btn.onclick=()=>{ if(!activeInputElement) activeInputElement=document.getElementById("fullName"); if(k==="backspace") activeInputElement.value=activeInputElement.value.slice(0,-1); else if(k==="space") activeInputElement.value+=" "; else if(k==="clear") activeInputElement.value=""; else activeInputElement.value+=k; activeInputElement.dispatchEvent(new Event('input')); }; rd.appendChild(btn); }); c.appendChild(rd); }); }
     document.getElementById("toggleKeyboardBtn").onclick = () => { let kb = document.getElementById("onscreenKeyboard"); kb.style.display = kb.style.display === "none" ? "block" : "none"; if(kb.style.display === "block" && !document.getElementById("dynamicKbContainer").children.length) buildKeyboard(); };
     document.querySelectorAll("#fullName, #omangId, #visitReason, #symptomInput").forEach(el => el.addEventListener("focus", () => activeInputElement = el));
     document.getElementById("fontUp").onclick = () => { let cur = parseFloat(getComputedStyle(document.body).fontSize); document.body.style.fontSize = Math.min(cur*1.1, 28)+"px"; };
     document.getElementById("fontDown").onclick = () => { let cur = parseFloat(getComputedStyle(document.body).fontSize); document.body.style.fontSize = Math.max(cur*0.9, 12)+"px"; };
+    let contrast = false; document.getElementById("contrastBtn").onclick = () => { document.body.style.background = contrast ? "" : "#000"; document.body.style.color = contrast ? "" : "#ffffe0"; contrast = !contrast; };
     document.getElementById("weightLight").onclick = () => setWeight("font-light");
     document.getElementById("weightRegular").onclick = () => setWeight("font-regular");
     document.getElementById("weightBold").onclick = () => setWeight("font-bold");
